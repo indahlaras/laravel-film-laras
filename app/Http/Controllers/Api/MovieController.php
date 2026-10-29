@@ -5,9 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-use App\Models\{
-    Film,
-};
+use App\Models\Film;
+use App\Models\Kritik;
 use App\Interfaces\MovieRepositoryInterface;
 use App\Classes\ApiResponseClass;
 use App\Http\Resources\MovieResource;
@@ -45,7 +44,17 @@ class MovieController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'sinopsis' => ['required', 'string'],
+            'year' => ['required', 'integer', 'between:1888,2100'],
+            'poster' => ['required', 'string', 'max:2048'],
+            'genre_id' => ['required', 'integer', 'exists:genres,id'],
+        ]);
+
+        $film = Film::create($validated);
+
+        return ApiResponseClass::sendResponse(MovieResource::make($film), 'Movie created successfully.', 201);
     }
 
     /**
@@ -53,7 +62,9 @@ class MovieController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $film = Film::findOrFail($id);
+
+        return ApiResponseClass::sendResponse(MovieResource::make($film), '', 200);
     }
 
     /**
@@ -69,7 +80,18 @@ class MovieController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $film = Film::findOrFail($id);
+        $validated = $request->validate([
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'sinopsis' => ['sometimes', 'required', 'string'],
+            'year' => ['sometimes', 'required', 'integer', 'between:1888,2100'],
+            'poster' => ['sometimes', 'required', 'string', 'max:2048'],
+            'genre_id' => ['sometimes', 'required', 'integer', 'exists:genres,id'],
+        ]);
+
+        $film->update($validated);
+
+        return ApiResponseClass::sendResponse(MovieResource::make($film->fresh()), 'Movie updated successfully.', 200);
     }
 
     /**
@@ -77,6 +99,17 @@ class MovieController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $film = Film::findOrFail($id);
+
+        if ($film->perans()->exists() || Kritik::where('film_id', $film->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This movie cannot be deleted while cast credits or reviews are attached.',
+            ], 409);
+        }
+
+        $film->delete();
+
+        return ApiResponseClass::sendResponse(null, 'Movie deleted successfully.', 200);
     }
 }
