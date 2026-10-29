@@ -11,21 +11,24 @@ use App\Models\{
 use App\Http\Requests\StoreFilmRequest;
 use App\Http\Requests\UpdateFilmRequest;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class FilmController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function movies()
+    public function movies(Request $request)
     {
-        //
         $genreFilm = null;
+        $search = trim((string) $request->query('search', ''));
         $films = Film::select('id','title', 'poster','year')
+                ->when($search !== '', fn ($query) => $query->where('title', 'like', '%' . $search . '%'))
                 ->orderByDesc('year')
                 ->OrderBy('created_at', 'asc')
-                ->paginate(18);
-        return view('components/movies', compact('films', 'genreFilm'));
+                ->paginate(18)
+                ->withQueryString();
+        return view('components/movies', compact('films', 'genreFilm', 'search'));
     }
 
     /**

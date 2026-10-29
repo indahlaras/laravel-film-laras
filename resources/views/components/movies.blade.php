@@ -11,7 +11,7 @@
               @if ($genreFilm !== null)
                       <h4 class="latest-text">Movies Of Genre {{ $genreFilm->name }}</h4>
                     @else
-                      <h4 class="latest-text">List Of Movies</h4>
+                      <h4 class="latest-text">{{ $search !== '' ? 'Search results for: ' . $search : 'List Of Movies' }}</h4>
                     @endif
               <div class="container">
                 <div class="agileits-single-top">
@@ -29,6 +29,9 @@
             </div>
             <div class="container">
               <div class="browse-inner">
+              @if ($films->isEmpty())
+                <p>No movies found{{ $search !== '' ? ' for "' . $search . '"' : '' }}.</p>
+              @endif
               @for ($data = 0; $data < $films->count(); $data++)
               <div class="col-md-2 w3l-movie-gride-agile">
                 <a href="{{ route('movies.show', $films[$data]->id) }}" class="hvr-shutter-out-horizontal"><img src="{{ asset($films[$data]->poster) }}" title="album-name" alt=" " />
@@ -89,7 +92,7 @@
                               <span class="frist" aria-hidden="true">{{ $numberPage }}</span>
                             </li>
                           @else
-                            <li><a href="?page={{ $numberPage }}" class="frist">{{ $numberPage }}</a></li>
+                            <li><a href="{{ $films->url($numberPage) }}" class="frist">{{ $numberPage }}</a></li>
                           @endif
                         @endfor
                         {{-- Number Page/> --}}
