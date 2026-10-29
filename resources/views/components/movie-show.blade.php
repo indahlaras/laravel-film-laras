@@ -52,17 +52,21 @@
                     <table id="table-breakpoint">
                       <thead>
                         <tr>
-                        <th>Cast</th>
+                        <th>Nama Cast</th>
                         <th>Peran</th>
                         </tr>
                       </thead>
                       <tbody>
-                        @foreach ($perans as $peran)
+                        @forelse ($perans as $peran)
                         <tr>
-                          <td class="w3-list-info">{{ $peran->cast_id }}</td>
+                          <td class="w3-list-info">{{ $peran->cast?->name ?? 'Nama cast belum tersedia' }}</td>
                           <td class="w3-list-info">{{ $peran->actor }}</td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr>
+                          <td colspan="2">Data cast belum tersedia untuk film ini.</td>
+                        </tr>
+                        @endforelse
                       </tbody>
                     </table>
                   </div>

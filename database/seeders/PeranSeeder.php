@@ -5,8 +5,9 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+use App\Models\Cast;
+use App\Models\Film;
 use App\Models\Peran;
-use Faker\Factory as Faker;
 
 class PeranSeeder extends Seeder
 {
@@ -15,15 +16,22 @@ class PeranSeeder extends Seeder
      */
     public function run(): void
     {
-        //
-        $faker = Faker::create('id_ID');
-        for($loop = 1; $loop <= 300; $loop++)
-        {
-            Peran::create([
-                "film_id"    => $faker->numberBetween(1,128),
-                "cast_id"    => $faker->numberBetween(1,50),
-                "actor"      => $faker->jobTitle,
-            ]);
+        $credits = require database_path('data/cast_credits.php');
+
+        foreach (Film::all() as $film) {
+            $posterName = basename($film->getRawOriginal('poster'));
+
+            foreach ($credits[$posterName] ?? [] as $credit) {
+                $cast = Cast::where('name', $credit['name'])->firstOrFail();
+
+                Peran::updateOrCreate(
+                    [
+                        'film_id' => $film->id,
+                        'cast_id' => $cast->id,
+                    ],
+                    ['actor' => $credit['actor']]
+                );
+            }
         }
     }
 }

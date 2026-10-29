@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+
         if(Schema::hasTable('genres'))
         {
             view()->share('genres', Genre::all());
