@@ -50,7 +50,7 @@
         .welcome-copy { margin: 8px 0 0; color: #7d8799; font-size: 13px; }
         .primary-link { display: inline-flex; align-items: center; gap: 8px; border-radius: 9px; padding: 11px 15px; color: #12392f; background: #79e0c1; font-size: 12px; font-weight: 750; }
         .primary-link:hover { background: #63d2b1; }
-        .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; margin-bottom: 25px; }
+        .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 17px; margin-bottom: 25px; }
         .stat-card, .panel { border: 1px solid #e9edf4; border-radius: 14px; background: #fff; box-shadow: 0 6px 22px rgb(22 34 58 / 3%); }
         .stat-card { display: flex; align-items: center; justify-content: space-between; min-height: 120px; padding: 20px 21px; }
         .stat-label { margin: 0 0 11px; color: #788398; font-size: 12px; font-weight: 600; }
@@ -58,6 +58,7 @@
         .stat-icon { display: grid; width: 43px; height: 43px; place-items: center; border-radius: 13px; color: #247761; background: #e2f7f0; font-size: 18px; }
         .stat-card:nth-child(2) .stat-icon { color: #6654a1; background: #eee9fb; }
         .stat-card:nth-child(3) .stat-icon { color: #a15f2d; background: #fff0e2; }
+        .stat-card:nth-child(4) .stat-icon { color: #3566a0; background: #e7f0fc; }
         .panel { overflow: hidden; margin-bottom: 22px; }
         .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid #edf0f5; padding: 19px 22px; }
         .panel-heading h2 { margin: 0; color: #202b40; font-size: 14px; font-weight: 750; }
@@ -115,6 +116,9 @@
             <a class="nav-link" href="#pengguna">
                 <span class="nav-icon" aria-hidden="true">♙</span>Pengguna
             </a>
+            <a class="nav-link" href="#komentar">
+                <span class="nav-icon" aria-hidden="true">▤</span>Komentar
+            </a>
             <a class="nav-link" href="{{ route('movies') }}">
                 <span class="nav-icon" aria-hidden="true">↗</span>Halaman film
             </a>
@@ -170,7 +174,18 @@
                     </div>
                     <span class="stat-icon" aria-hidden="true">♙</span>
                 </article>
+                <article class="stat-card">
+                    <div>
+                        <p class="stat-label">Total komentar</p>
+                        <p class="stat-value">{{ number_format($commentCount) }}</p>
+                    </div>
+                    <span class="stat-icon" aria-hidden="true">▤</span>
+                </article>
             </section>
+
+            @if (session('status'))
+                <p role="status">{{ session('status') }}</p>
+            @endif
 
             <section class="panel" id="film-terbaru" aria-labelledby="film-title">
                 <div class="panel-heading">
@@ -243,6 +258,55 @@
                                         <td>{{ $user->email }}</td>
                                         <td><span class="badge">{{ ucfirst($user->role?->name ?? 'user') }}</span></td>
                                         <td>{{ $user->created_at->format('d M Y') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </section>
+
+            <section class="panel" id="komentar" aria-labelledby="comment-title">
+                <div class="panel-heading">
+                    <div>
+                        <h2 id="comment-title">Moderasi komentar</h2>
+                        <p>Delapan komentar terbaru dari pengguna.</p>
+                    </div>
+                </div>
+                @if ($recentComments->isEmpty())
+                    <p class="empty">Belum ada komentar.</p>
+                @else
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pengguna</th>
+                                    <th>Film</th>
+                                    <th>Komentar</th>
+                                    <th>Rating</th>
+                                    <th>Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($recentComments as $comment)
+                                    <tr>
+                                        <td class="user-name">{{ $comment->user?->name ?? 'Pengguna tidak diketahui' }}</td>
+                                        <td>
+                                            @if ($comment->film)
+                                                <a class="text-link" href="{{ route('movies.show', $comment->film) }}">{{ $comment->film->title }}</a>
+                                            @else
+                                                Film tidak tersedia
+                                            @endif
+                                        </td>
+                                        <td>{{ \Illuminate\Support\Str::limit($comment->comment, 90) }}</td>
+                                        <td><span class="badge">{{ $comment->rating }}/5</span></td>
+                                        <td>
+                                            <form action="{{ route('admin.comments.destroy', $comment) }}" method="post" onsubmit="return confirm('Hapus komentar ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit">Hapus</button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

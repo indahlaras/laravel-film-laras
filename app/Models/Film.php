@@ -29,4 +29,9 @@ class Film extends Model
     {
         return $this->belongsTo(Genre::class);
     }
+
+    public function kritiks(): HasMany
+    {
+        return $this->hasMany(Kritik::class);
+    }
 }

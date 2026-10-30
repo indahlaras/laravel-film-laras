@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Film;
 use App\Models\Genre;
+use App\Models\Kritik;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 
@@ -16,8 +17,10 @@ class DashboardController extends Controller
             'filmCount' => Film::count(),
             'genreCount' => Genre::count(),
             'userCount' => User::count(),
+            'commentCount' => Kritik::count(),
             'recentFilms' => Film::with('genre')->latest()->take(5)->get(),
             'recentUsers' => User::with('role')->latest()->take(5)->get(),
+            'recentComments' => Kritik::with(['user:id,name', 'film:id,title'])->latest()->take(8)->get(),
         ]);
     }
 }

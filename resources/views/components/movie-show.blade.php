@@ -118,34 +118,80 @@
           </div>
         </div>
         <div class="clearfix"> </div>
-        <div class="all-comments">
+        <div class="all-comments" id="comments">
           <div class="all-comments-info">
-            <a href="#">Comments</a>
+            <h3>Komentar &amp; Rating</h3>
+            @if (session('status'))
+              <p role="status">{{ session('status') }}</p>
+            @endif
+            @auth
             <div class="agile-info-wthree-box">
-              <form>
-                <input type="text" placeholder="Name" required="">			           					   
-                <input type="text" placeholder="Email" required="">
-                <input type="text" placeholder="Phone" required="">
-                <textarea placeholder="Message" required=""></textarea>
-                <input type="submit" value="SEND">
+              <form action="{{ route('comments.store', $film) }}" method="post">
+                @csrf
+                <label for="new-comment">Tulis komentar sebagai {{ auth()->user()->name }}</label>
+                <textarea id="new-comment" name="comment" maxlength="2000" placeholder="Bagikan pendapatmu tentang film ini..." required>{{ old('comment') }}</textarea>
+                @error('comment')
+                  <p role="alert">{{ $message }}</p>
+                @enderror
+                <label for="new-rating">Rating</label>
+                <select id="new-rating" name="rating" required>
+                  @for ($rating = 5; $rating >= 1; $rating--)
+                    <option value="{{ $rating }}" @selected(old('rating', 5) == $rating)>{{ $rating }} / 5</option>
+                  @endfor
+                </select>
+                @error('rating')
+                  <p role="alert">{{ $message }}</p>
+                @enderror
+                <input type="submit" value="Kirim komentar">
                 <div class="clearfix"> </div>
               </form>
             </div>
+            @else
+              <p>Silakan <a href="#" data-toggle="modal" data-target="#myModal">login</a> terlebih dahulu untuk memberi rating dan menulis komentar.</p>
+            @endauth
           </div>
           <div class="media-grids">
-            @foreach ($comments as $comment)
+            @forelse ($comments as $comment)
               <div class="media">
-                <h5>{{ $comment->user_id }}</h5>
+                <h5>{{ $comment->user?->name ?? 'Pengguna tidak diketahui' }}</h5>
                 <div class="media-left">
                   <a href="#">
                     <img src="{{ asset('storage/images/user.jpg') }}" title="One movies" alt=" " />
                   </a>
                 </div>
                 <div class="media-body">
+                  <p>{{ str_repeat('★', $comment->rating) }}{{ str_repeat('☆', 5 - $comment->rating) }} <span>{{ $comment->created_at->format('d M Y') }}</span></p>
                   <p>{{ $comment->comment }}</p>
+                  @auth
+                    @if (auth()->id() === $comment->user_id || auth()->user()->role?->name === 'admin')
+                      <details>
+                        <summary>Edit komentar</summary>
+                        <form action="{{ route('comments.update', $comment) }}" method="post">
+                          @csrf
+                          @method('PUT')
+                          <label for="comment-{{ $comment->id }}">Komentar</label>
+                          <textarea id="comment-{{ $comment->id }}" name="comment" maxlength="2000" required>{{ $comment->comment }}</textarea>
+                          <label for="rating-{{ $comment->id }}">Rating</label>
+                          <select id="rating-{{ $comment->id }}" name="rating" required>
+                            @for ($rating = 5; $rating >= 1; $rating--)
+                              <option value="{{ $rating }}" @selected($comment->rating == $rating)>{{ $rating }} / 5</option>
+                            @endfor
+                          </select>
+                          <button type="submit">Simpan perubahan</button>
+                        </form>
+                        <form action="{{ route('comments.destroy', $comment) }}" method="post" onsubmit="return confirm('Hapus komentar ini?')">
+                          @csrf
+                          @method('DELETE')
+                          <button type="submit">Hapus komentar</button>
+                        </form>
+                      </details>
+                    @endif
+                  @endauth
                 </div>
               </div>
-            @endforeach
+            @empty
+              <p>Belum ada komentar untuk film ini.</p>
+            @endforelse
           </div>
         </div>
       </div>

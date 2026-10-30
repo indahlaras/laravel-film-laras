@@ -63,9 +63,9 @@ class FilmController extends Controller
                         ->OrderBy('created_at', 'asc')
                         ->limit(9)
                         ->get();
-        $comments        = Kritik::select('comment', 'user_id')
+        $comments        = Kritik::with('user:id,name')
                         ->where('film_id', '=', $film->id)
-                        ->orderBy('created_at', 'asc')
+                        ->latest()
                         ->limit(10)
                         ->get();
         $perans         = Peran::with('cast')->where('film_id', $film->id)->get();

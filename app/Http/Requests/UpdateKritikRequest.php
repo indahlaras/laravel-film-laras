@@ -11,7 +11,10 @@ class UpdateKritikRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        $kritik = $this->route('kritik');
+
+        return $this->user() !== null
+            && ($this->user()->role?->name === 'admin' || $kritik->user_id === $this->user()->id);
     }
 
     /**
@@ -22,7 +25,8 @@ class UpdateKritikRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'comment' => ['required', 'string', 'max:2000'],
+            'rating' => ['required', 'integer', 'between:1,5'],
         ];
     }
 }
