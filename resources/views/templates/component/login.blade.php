@@ -14,19 +14,50 @@
               </div>
               <div class="form">
               <h3>Login to your account</h3>
-              <form action="#" method="post">
-                <input type="text" name="Username" placeholder="Username" required="">
-                <input type="password" name="Password" placeholder="Password" required="">
+              <form action="{{ route('login.store') }}" method="post">
+                @csrf
+                <input type="hidden" name="auth_form" value="login">
+                <input type="text" name="username" placeholder="Username" value="{{ old('username') }}" autocomplete="username" required>
+                <input type="password" name="password" placeholder="Password" autocomplete="current-password" required>
+                @error('username')
+                  <p role="alert" style="color: #c00">{{ $message }}</p>
+                @enderror
+                @error('password')
+                  <p role="alert" style="color: #c00">{{ $message }}</p>
+                @enderror
                 <input type="submit" value="Login">
               </form>
               </div>
               <div class="form">
               <h3>Create an account</h3>
-              <form action="#" method="post">
-                <input type="text" name="Username" placeholder="Username" required="">
-                <input type="password" name="Password" placeholder="Password" required="">
-                <input type="email" name="Email" placeholder="Email Address" required="">
-                <input type="text" name="Phone" placeholder="Phone Number" required="">
+              <form action="{{ route('register.store') }}" method="post">
+                @csrf
+                <input type="hidden" name="auth_form" value="register">
+                <input type="text" name="username" placeholder="Username" value="{{ old('auth_form') === 'register' ? old('username') : '' }}" autocomplete="username" required>
+                @error('username')
+                  <p role="alert" style="color: #c00">{{ $message }}</p>
+                @enderror
+                <input type="email" name="email" placeholder="Email Address" value="{{ old('email') }}" autocomplete="email" required>
+                @error('email')
+                  <p role="alert" style="color: #c00">{{ $message }}</p>
+                @enderror
+                <input type="password" name="password" placeholder="Password (minimum 8 characters)" autocomplete="new-password" required>
+                @error('password')
+                  <p role="alert" style="color: #c00">{{ $message }}</p>
+                @enderror
+                <input type="password" name="password_confirmation" placeholder="Confirm Password" autocomplete="new-password" required>
+                <input type="number" name="umur" placeholder="Umur" min="1" max="120" value="{{ old('umur') }}" required>
+                @error('umur')
+                  <p role="alert" style="color: #c00">{{ $message }}</p>
+                @enderror
+                <input type="text" name="alamat" placeholder="Alamat" value="{{ old('alamat') }}" required>
+                @error('alamat')
+                  <p role="alert" style="color: #c00">{{ $message }}</p>
+                @enderror
+                <textarea name="bio" placeholder="Bio" required>{{ old('bio') }}</textarea>
+                @error('bio')
+                  <p role="alert" style="color: #c00">{{ $message }}</p>
+                @enderror
                 <input type="submit" value="Register">
               </form>
               </div>
@@ -51,3 +82,11 @@
     }, "slow");
   });
 </script>
+@if ($errors->any())
+  @push('script')
+    $('#myModal').modal('show');
+    @if (old('auth_form') === 'register')
+      $('.toggle').trigger('click');
+    @endif
+  @endpush
+@endif

@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Faker\Factory as Faker;
-use App\Models\{User, Profile};
+use App\Models\{Profile, Role, User};
 
 class AdminSeeder extends Seeder
 {
@@ -26,13 +26,15 @@ class AdminSeeder extends Seeder
             "bio"      => 'administrator',
         ]);
 
+        $adminRole = Role::where('name', 'admin')->firstOrFail();
+
         User::create([
             'name' => 'admin',
             'email' => 'admin@example.com',
             'email_verified_at' => now(),
             'password' => Hash::make('12345678'),
             'remember_token' => Str::random(10),
-            'role_id' => 2,
+            'role_id' => $adminRole->id,
             'profile_id' => $profile->id,
         ]);
     }
