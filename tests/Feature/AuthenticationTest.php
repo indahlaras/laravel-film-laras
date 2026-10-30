@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Film;
+use App\Models\Genre;
+use App\Models\Profile;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\Profile;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -49,6 +51,22 @@ class AuthenticationTest extends BaseTestCase
             $table->timestamps();
         });
 
+        Schema::create('genres', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        Schema::create('films', function (Blueprint $table): void {
+            $table->id();
+            $table->text('title');
+            $table->text('sinopsis');
+            $table->integer('year');
+            $table->text('poster');
+            $table->foreignId('genre_id');
+            $table->timestamps();
+        });
+
         Role::create(['name' => 'user']);
         Role::create(['name' => 'admin']);
     }
@@ -56,6 +74,14 @@ class AuthenticationTest extends BaseTestCase
     public function test_admin_can_log_in_with_username_and_password_and_reaches_admin_dashboard(): void
     {
         $admin = $this->createUser('admin', 2);
+        $genre = Genre::create(['name' => 'Drama']);
+        Film::create([
+            'title' => 'Film Contoh',
+            'sinopsis' => 'Sinopsis film.',
+            'year' => 2025,
+            'poster' => 'film-contoh.jpg',
+            'genre_id' => $genre->id,
+        ]);
 
         $response = $this->post(route('login.store'), [
             'username' => 'admin',
@@ -64,7 +90,11 @@ class AuthenticationTest extends BaseTestCase
 
         $response->assertRedirect(route('admin.dashboard'));
         $this->assertAuthenticatedAs($admin);
-        $this->get(route('admin.dashboard'))->assertOk();
+        $this->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Selamat datang, admin!')
+            ->assertSee('Film Contoh')
+            ->assertSee('Drama');
     }
 
     public function test_invalid_credentials_are_rejected(): void
